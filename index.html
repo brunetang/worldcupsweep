@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>World Cup '26 Sweep</title>
+  <meta name="description" content="World Cup 2026 sweepstake — last team standing." />
+  <meta name="theme-color" content="#06120c" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="WC '26 Sweep" />
+  <meta property="og:title" content="World Cup '26 Sweep" />
+  <meta property="og:description" content="Last team standing takes the pot. Track the draw, groups, and knockout bracket." />
+  <meta name="twitter:card" content="summary" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>" />
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <span class="kicker" id="kicker">⚽ Sweepstake</span>
+      <div class="sync-status" id="syncStatus">
+        <span class="dot" id="syncDot"></span>
+        <span id="syncLabel">Local only</span>
+      </div>
+      <h1 class="title">World Cup <span class="yr">'26</span></h1>
+      <p class="subtitle" id="subtitle">Last team standing takes the pot</p>
+    </header>
+
+    <nav class="tabs">
+      <button data-view="draw">The Draw</button>
+      <button data-view="matches" class="active">Match Centre</button>
+      <button data-view="groups">Groups</button>
+      <button data-view="knockout">Knockout</button>
+      <button data-view="standings">Standings</button>
+      <button data-view="teams">Teams</button>
+      <button data-view="settings" id="tabSettings">Settings</button>
+      <button data-view="help">How to use</button>
+    </nav>
+
+    <!-- ============ DRAW ============ -->
+    <section class="view" id="view-draw">
+      <!-- setup (shown when no draw yet) -->
+      <div class="panel" id="drawSetup">
+        <!-- step 1: enter boys + draw the order -->
+        <div id="setupEntry">
+          <span class="step-tag">Draw 1 of 2</span>
+          <h2 id="enterTitle">Enter the players</h2>
+          <p class="hint" id="enterHint">Add everyone playing. First we shuffle the running order, then the teams get dealt out. Every player gets the same number of teams; any leftovers go to <b>House</b>.</p>
+          <div class="boys-list" id="boysList"></div>
+          <div class="row-actions">
+            <button class="btn btn-ghost" id="addBoy">+ Add a player</button>
+            <span class="count-chip" id="splitChip"></span>
+          </div>
+          <div style="margin-top:22px; display:flex; gap:12px; flex-wrap:wrap;">
+            <button class="btn btn-primary btn-lg" id="drawOrderBtn">🎲 Draw the order</button>
+          </div>
+          <p class="help" id="setupNote" style="margin-top:14px;"></p>
+        </div>
+        <!-- step 2: order locked, draw the teams -->
+        <div id="setupOrdered" style="display:none;">
+          <span class="step-tag">Draw 2 of 2</span>
+          <h2>Order locked in</h2>
+          <p class="hint" id="orderedHint">This is the running order. Now deal out the teams.</p>
+          <ol class="order-locked" id="orderLocked"></ol>
+          <div class="draw-style">
+            <span class="ds-label">Draw style</span>
+            <label class="ds-opt">
+              <input type="radio" name="drawMode" value="pots" checked />
+              <span class="ds-text"><b>Pots by ranking</b><em id="potsHint">Each player gets one team from each ranking pot, drawn lowest pot first so the top teams come out last.</em></span>
+            </label>
+            <label class="ds-opt">
+              <input type="radio" name="drawMode" value="potsplay" />
+              <span class="ds-text"><b>Pots — House plays</b><em id="potsPlayHint">House joins as a player and draws one team per pot too; the lowest leftovers go to House or a Dregs bucket.</em></span>
+            </label>
+            <label class="ds-opt">
+              <input type="radio" name="drawMode" value="seeds" />
+              <span class="ds-text"><b>Spread the top seeds</b><em id="seedsHint">Each player is dealt one of the top seeded teams first, then the rest are random.</em></span>
+            </label>
+            <label class="ds-opt">
+              <input type="radio" name="drawMode" value="random" />
+              <span class="ds-text"><b>Fully random</b><em>Every team allocated completely at random.</em></span>
+            </label>
+          </div>
+          <label class="seed-toggle" id="houseLowToggleWrap" style="display:none;">
+            <input type="checkbox" id="houseLowToggle" />
+            <span class="seed-switch"></span>
+            <span class="seed-label">
+              <b>House takes the dregs</b>
+              <em id="houseLowToggleHint">House gets the lowest FIFA-ranked teams instead of random ones.</em>
+            </span>
+          </label>
+          <label class="seed-toggle" id="dregsBucketWrap" style="display:none;">
+            <input type="checkbox" id="dregsBucketToggle" />
+            <span class="seed-switch"></span>
+            <span class="seed-label">
+              <b>Leftovers go to a "Dregs" bucket</b>
+              <em id="dregsBucketHint">The lowest teams go to a separate Dregs card owned by no one, instead of to House.</em>
+            </span>
+          </label>
+          <div class="row-actions" style="margin-top:18px;">
+            <button class="btn btn-primary btn-lg" id="drawTeamsBtn">🎰 Draw the teams</button>
+            <button class="btn btn-ghost" id="editBoysBtn">← Edit players / redraw order</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- results board (shown when draw done) -->
+      <div id="drawResults" style="display:none;">
+        <div id="winnerBannerSlot"></div>
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+          <div>
+            <h2 style="font-family:var(--display); text-transform:uppercase; font-size:28px;">The Draw Is In</h2>
+            <p class="hint" style="margin:0;" id="boardSub"></p>
+          </div>
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <span class="lock-badge" id="lockBadge" style="display:none;">🔒 Draw locked</span>
+            <button class="btn btn-ghost admin-only" id="lockDraw">🔒 Lock the draw</button>
+            <button class="btn btn-ghost admin-only" id="unlockDraw" style="display:none;">🔓 Unlock</button>
+            <button class="btn btn-ghost admin-only" id="redraw">↻ Re-run draw</button>
+          </div>
+        </div>
+        <div class="board" id="board"></div>
+      </div>
+    </section>
+
+    <!-- ============ STANDINGS ============ -->
+    <section class="view" id="view-standings">
+      <div id="standingsWinnerSlot"></div>
+      <div class="panel">
+        <h2>Standings</h2>
+        <p class="hint">Ranked by teams still alive in the tournament. Knocked-out teams are struck through.</p>
+        <div class="board" id="standingsBoard"></div>
+      </div>
+    </section>
+
+    <!-- ============ MATCH CENTRE ============ -->
+    <section class="view active" id="view-matches">
+      <div class="mc-daynav">
+        <button class="mc-arrow" id="mcPrev" title="Previous day">‹</button>
+        <div class="mc-daylabel">
+          <span id="mcLabel">Today</span>
+          <span id="mcDate"></span>
+        </div>
+        <button class="mc-arrow" id="mcNext" title="Next day">›</button>
+      </div>
+      <div style="text-align:center; margin-bottom:14px;">
+        <button class="mc-today" id="mcToday">Jump to today</button>
+      </div>
+      <div id="mcList"></div>
+      <p class="help" style="text-align:center; margin-top:14px;">All times in Sydney (AEST). Results auto-update during the tournament.</p>
+    </section>
+
+    <!-- ============ GROUPS ============ -->
+    <section class="view" id="view-groups">
+      <div class="panel" style="margin-bottom:18px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
+          <div>
+            <h2>Group Stage</h2>
+            <p class="hint" id="groupsHint" style="margin:0;">12 groups of four. Top two plus the eight best third-placed teams reach the Round of 32. Kick-off times shown in Sydney (AEST).</p>
+          </div>
+          <span class="count-chip" id="groupsProgress"></span>
+        </div>
+      </div>
+      <div id="groupsGrid"></div>
+    </section>
+
+    <!-- ============ KNOCKOUT ============ -->
+    <section class="view" id="view-knockout">
+      <div class="panel" style="margin-bottom:18px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
+          <div>
+            <h2>Knockout Bracket</h2>
+            <p class="hint" style="margin:0;">Round of 32 through to the Final. Teams fill in as the groups finish. Times in Sydney (AEST). Scroll across →</p>
+          </div>
+          <span class="count-chip" id="knockoutProgress"></span>
+        </div>
+      </div>
+      <div class="bracket-scroll"><div class="bracket" id="bracket"></div></div>
+      <div id="thirdPlaceSlot"></div>
+    </section>
+
+    <!-- ============ TEAMS ============ -->
+    <section class="view" id="view-teams">
+      <div class="panel">
+        <h2>Tournament Tracker</h2>
+        <p class="hint" id="teamsHint">Tap ✕ to knock a team out, ↺ to revive it, 👑 to crown the champion. Changes save to GitHub.</p>
+        <div id="teamsAdmin"></div>
+      </div>
+    </section>
+
+    <!-- ============ SETTINGS ============ -->
+    <section class="view" id="view-settings">
+      <div class="panel admin-only">
+        <h2>Group Branding</h2>
+        <p class="hint">Name your sweep and pick what to call the people in it. Saved with the sweep, so everyone viewing sees the same wording.</p>
+        <div class="field-grid">
+          <div><label class="fld">Group name</label><input type="text" id="cfgGroupName" placeholder="e.g. The Office Sweep" /></div>
+          <div><label class="fld">Tagline (subtitle)</label><input type="text" id="cfgSubtitle" placeholder="Last team standing takes the pot" /></div>
+          <div><label class="fld">Player word (singular)</label><input type="text" id="cfgPlayerWord" placeholder="player" /></div>
+          <div><label class="fld">Player word (plural)</label><input type="text" id="cfgPlayerWordPlural" placeholder="players" /></div>
+        </div>
+        <div class="row-actions" style="margin-top:18px;">
+          <button class="btn btn-primary" id="cfgBrandingSave">Save branding</button>
+        </div>
+        <p class="help">Leave the group name blank for a generic header. Player words are used throughout the draw screens.</p>
+      </div>
+
+      <div class="panel">
+        <h2>GitHub Sync</h2>
+        <p class="hint">So everyone sees the same live draw and results. Fill this in once (admin only). Friends just open the link — they see the latest committed data automatically.</p>
+        <div class="field-grid">
+          <div><label class="fld">Repo owner</label><input type="text" id="cfgOwner" placeholder="your-github-username" /></div>
+          <div><label class="fld">Repo name</label><input type="text" id="cfgRepo" placeholder="world-cup-26-sweep-app" /></div>
+          <div><label class="fld">Branch</label><input type="text" id="cfgBranch" placeholder="main" /></div>
+          <div><label class="fld">Data file path</label><input type="text" id="cfgPath" placeholder="data.json" /></div>
+          <div class="full"><label class="fld">Personal access token (admin only)</label><input type="password" id="cfgToken" placeholder="ghp_… — kept in your browser, never committed" /></div>
+        </div>
+        <div class="row-actions" style="margin-top:18px;">
+          <button class="btn btn-primary" id="cfgSave">Save config</button>
+          <button class="btn btn-ghost" id="cfgPull">Load from GitHub</button>
+          <button class="btn btn-magenta" id="cfgPush">Save to GitHub</button>
+        </div>
+        <p class="help" id="cfgStatus" style="margin-top:14px;"></p>
+        <p class="help">
+          Token needs <b>Contents: Read &amp; write</b> on the repo (fine-grained PAT), or the classic <code>repo</code> scope.
+          Without a token the app is read-only — anyone can view the draw and standings, only the admin can change them.
+        </p>
+      </div>
+
+      <div class="panel admin-only">
+        <h2>Settings Tab Visibility</h2>
+        <p class="hint">Hide the Settings tab so the wider group doesn't see it. You can always get back in by adding <code>#settings</code> to the site URL, and it stays visible on your own (admin) browser.</p>
+        <div class="row-actions">
+          <button class="btn btn-ghost" id="toggleSettingsTab">Hide Settings tab</button>
+        </div>
+        <p class="help" id="settingsVisNote"></p>
+      </div>
+
+      <div class="panel admin-only">
+        <h2>Local Backup</h2>
+        <p class="hint">Export or import the whole sweep as a JSON file.</p>
+        <div class="row-actions">
+          <button class="btn btn-ghost" id="exportJson">⬇ Export JSON</button>
+          <button class="btn btn-ghost" id="importJsonBtn">⬆ Import JSON</button>
+          <input type="file" id="importJson" accept="application/json" style="display:none" />
+        </div>
+      </div>
+
+      <div class="panel admin-only">
+        <h2 style="color:var(--magenta);">Danger Zone</h2>
+        <p class="hint">Reset the draw (keeps the players and teams) or wipe everything back to a fresh tournament.</p>
+        <div class="row-actions">
+          <button class="btn btn-ghost" id="resetDraw">Reset the draw</button>
+          <button class="btn btn-ghost" id="resetAll" style="color:var(--magenta); border-color:var(--magenta);">Wipe everything</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ HOW TO USE ============ -->
+    <section class="view" id="view-help">
+      <div class="panel guide">
+        <h2>What this is</h2>
+        <p class="hint">A World Cup sweep. Everyone playing is randomly dealt a share of the 48 teams. As teams get knocked out, players drop away, and whoever owns the eventual champion wins. Last team standing.</p>
+        <p class="hint">You run it for free on your own GitHub page. One person is the <b>admin</b> (runs the draw, can fix scores). Everyone else just opens the link and watches it update live.</p>
+      </div>
+
+      <div class="panel guide">
+        <h2>Set it up · one time, about 10 minutes</h2>
+        <ol class="guide-steps">
+          <li>
+            <b>Make your own copy.</b>
+            On the template repo page on GitHub, click the green <b>Use this template</b> button → <b>Create a new repository</b>. Give it a name (anything, e.g. <code>office-world-cup</code>), set it to <b>Public</b>, and create it.
+          </li>
+          <li>
+            <b>Turn on the website.</b>
+            In your new repo: <b>Settings → Pages</b>. Under "Source" pick <b>Deploy from a branch</b>, choose branch <b>main</b> and folder <b>/ (root)</b>, then <b>Save</b>. After a minute your site is live at <code>your-username.github.io/your-repo-name</code>.
+          </li>
+          <li>
+            <b>Become the admin.</b>
+            You need a token so the app can save your draw and results for everyone.
+            <ul>
+              <li>On GitHub: your avatar (top right) → <b>Settings → Developer settings</b> (bottom of the left menu) → <b>Personal access tokens → Fine-grained tokens → Generate new token</b>.</li>
+              <li><b>Repository access:</b> "Only select repositories" → pick your sweep repo.</li>
+              <li><b>Permissions:</b> Repository permissions → <b>Contents → Read and write</b>.</li>
+              <li>Generate it and <b>copy</b> the token.</li>
+              <li>Open your site → <b>Settings</b> tab → paste it into "Personal access token" → <b>Save config</b>. The badge near the top should read <b>Admin · synced</b>.</li>
+            </ul>
+            <span class="help">The token lives only in your browser and is never shared. Keep it private, like a password.</span>
+          </li>
+          <li>
+            <b>Name your sweep.</b>
+            <b>Settings → Group Branding</b>: set the group name, a tagline, and what to call the people in it (player, lad, member, whatever). Save branding.
+          </li>
+        </ol>
+      </div>
+
+      <div class="panel guide">
+        <h2>Run the draw</h2>
+        <ol class="guide-steps">
+          <li>Go to <b>The Draw</b> tab and add everyone's name.</li>
+          <li><b>Draw the order</b> — shuffles who gets picked when.</li>
+          <li><b>Draw the teams</b> — deals the 48 teams out. Pick a draw style (<b>Pots by ranking</b> is the fairest spread). Any teams left over go to <b>House</b> (the pot).</li>
+          <li>Happy with it? Hit <b>Lock the draw</b> so it can't be changed by accident.</li>
+        </ol>
+      </div>
+
+      <div class="panel guide">
+        <h2>During the tournament</h2>
+        <p class="hint">Results update on their own, roughly every 20 minutes while games are on. Match Centre, Groups, Knockout and Standings all fill in automatically. Nothing for you to do.</p>
+        <p class="hint">If a score is ever wrong or slow, the admin can set it by hand on the <b>Teams</b> tab (mark a team out, revive it, or crown the champion). The auto-update will reconcile on its next run.</p>
+      </div>
+
+      <div class="panel guide">
+        <h2>Share it</h2>
+        <p class="hint">Send everyone your site link (<code>your-username.github.io/your-repo-name</code>). They see the whole thing live, read-only. Only you, with the token saved in your browser, can change anything.</p>
+      </div>
+
+      <div class="panel guide">
+        <h2>If something's not right</h2>
+        <ul>
+          <li><b>No "Admin" badge / it won't save:</b> your token is missing, or doesn't have <b>Contents: Read &amp; write</b>, or is pointed at the wrong repo. Redo step 3.</li>
+          <li><b>Results aren't updating:</b> check the <b>Actions</b> tab on your repo is enabled. Auto-updates only run during the tournament dates; to force one, go to Actions → "Update results" → <b>Run workflow</b>.</li>
+          <li><b>Wrong or old data showing:</b> hard refresh the page (Cmd+Shift+R on Mac, Ctrl+Shift+R on Windows).</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+
+  <!-- draw stage overlay -->
+  <div class="stage" id="stage">
+    <div class="phase" id="stagePhase"></div>
+    <div class="onclock" id="stageOnClock"></div>
+    <div id="stageBody"></div>
+    <button class="skip" id="stageSkip">Skip animation ⏭</button>
+    <div class="round-banner" id="roundBanner">
+      <div class="rb-num" id="rbNum"></div>
+      <div class="rb-sub" id="rbSub"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
