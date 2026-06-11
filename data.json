@@ -6,7 +6,8 @@
     "playerWord": "Player",
     "playerWordPlural": "Players",
     "hideSettingsTab": false,
-    "lastUpdated": "2026-06-11T04:02:33.633Z"
+    "lastUpdated": "2026-06-11T04:02:33.633Z",
+    "lastResultSync": "2026-06-11T22:46:00.788567+00:00"
   },
   "teams": [
     {
@@ -496,11 +497,11 @@
       "t2": "rsa",
       "ref1": null,
       "ref2": null,
-      "s1": null,
-      "s2": null,
+      "s1": 2,
+      "s2": 0,
       "p1": null,
       "p2": null,
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "num": 2,
