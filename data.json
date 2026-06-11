@@ -1,11 +1,12 @@
 {
   "meta": {
     "title": "World Cup '26 Sweep",
-    "subtitle": "Last team standing takes the pot",
-    "groupName": "",
-    "playerWord": "player",
-    "playerWordPlural": "players",
-    "lastUpdated": null
+    "subtitle": "Winner takes the pot",
+    "groupName": "Levene World Cup Sweep",
+    "playerWord": "Player",
+    "playerWordPlural": "Players",
+    "hideSettingsTab": false,
+    "lastUpdated": "2026-06-11T03:20:04.295Z"
   },
   "teams": [
     {
@@ -393,11 +394,14 @@
       "seed": 26
     }
   ],
-  "boys": [],
+  "boys": [
+    ""
+  ],
   "draw": {
     "completed": false,
     "order": [],
-    "allocations": {}
+    "allocations": {},
+    "locked": false
   },
   "champion": null,
   "schedule": [
