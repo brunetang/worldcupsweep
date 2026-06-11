@@ -6,7 +6,7 @@
     "playerWord": "Player",
     "playerWordPlural": "Players",
     "hideSettingsTab": false,
-    "lastUpdated": "2026-06-11T03:20:08.648Z"
+    "lastUpdated": "2026-06-11T03:57:39.651Z"
   },
   "teams": [
     {
@@ -395,13 +395,28 @@
     }
   ],
   "boys": [
-    ""
+    "Bryan",
+    "Jacqui",
+    "BS",
+    "Andy",
+    "Jody",
+    "Brandon",
+    "Sammi",
+    "Kyle"
   ],
   "draw": {
     "completed": false,
-    "order": [],
-    "allocations": {},
-    "locked": false
+    "order": [
+      "Jody",
+      "Brandon",
+      "Jacqui",
+      "Kyle",
+      "Andy",
+      "Sammi",
+      "Bryan",
+      "BS"
+    ],
+    "allocations": {}
   },
   "champion": null,
   "schedule": [
