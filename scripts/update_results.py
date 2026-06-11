@@ -9,7 +9,11 @@ Idempotent: running it pre-tournament seeds the fixtures with empty scores;
 running it during the tournament fills scores, resolves knockout teams, and
 recomputes who is still alive.
 
-Source: https://github.com/openfootball/worldcup.json  (public domain, no key)
+Sources:
+  - Fixture STRUCTURE (knockout slot labels, bracket wiring): openfootball
+    https://github.com/openfootball/worldcup.json  (public domain, no key)
+  - Live SCORES: ESPN's public scoreboard (key-free), overlaid on top, because
+    openfootball's community score feed can lag by hours or days.
 
 Usage:
     python3 scripts/update_results.py            # fetch live, write data.json
@@ -27,10 +31,22 @@ from datetime import datetime, timedelta, timezone
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_PATH = os.path.join(HERE, "data.json")
 OPENFOOTBALL_URL = "https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json"
+# ESPN's public scoreboard: key-free and near-live where openfootball's score feed
+# lags. limit=200 returns all 104 matches in one request, not just the current day.
+ESPN_URL = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=20260611-20260720&limit=200"
 
 # openfootball name -> our team name (only where they differ)
 NAME_FIX = {
     "Bosnia & Herzegovina": "Bosnia and Herzegovina",
+    "USA": "United States",
+}
+
+# ESPN displayName -> our team name (only where they differ)
+ESPN_NAME_FIX = {
+    "Czechia": "Czech Republic",
+    "Türkiye": "Turkey",
+    "Congo DR": "DR Congo",
+    "Bosnia-Herzegovina": "Bosnia and Herzegovina",
     "USA": "United States",
 }
 
@@ -52,6 +68,88 @@ def fetch_openfootball(local=None):
     req = urllib.request.Request(OPENFOOTBALL_URL, headers={"User-Agent": "wc26-sweep"})
     with urllib.request.urlopen(req, timeout=30) as r:
         return json.loads(r.read().decode("utf-8"))
+
+
+def fetch_espn():
+    req = urllib.request.Request(ESPN_URL, headers={"User-Agent": "wc26-sweep"})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        return json.loads(r.read().decode("utf-8"))
+
+
+def _date_only(s):
+    try:
+        return datetime(int(s[:4]), int(s[5:7]), int(s[8:10]))
+    except (ValueError, TypeError, IndexError):
+        return None
+
+
+def espn_score_index(espn, name_to_id):
+    """Map sorted (id1,id2) pair -> list of score records from ESPN's scoreboard.
+
+    A list per pair because a pair could in theory meet twice, and ESPN's date is
+    a UTC instant that can land a day off openfootball's venue-local date, so the
+    overlay disambiguates by nearest date.
+    """
+    def id_of(nm):
+        if not nm:
+            return None
+        return name_to_id.get(ESPN_NAME_FIX.get(nm, nm))
+
+    idx = {}
+    for e in espn.get("events", []):
+        comps = e.get("competitions") or []
+        if not comps:
+            continue
+        cs = comps[0].get("competitors") or []
+        if len(cs) < 2:
+            continue
+        home = next((c for c in cs if c.get("homeAway") == "home"), cs[0])
+        away = next((c for c in cs if c.get("homeAway") == "away"), cs[1])
+        id1 = id_of((home.get("team") or {}).get("displayName"))
+        id2 = id_of((away.get("team") or {}).get("displayName"))
+        if not id1 or not id2:   # unresolved placeholder ("Group A Winner") -> skip
+            continue
+        st = (e.get("status") or {}).get("type") or {}
+        if st.get("state") not in ("in", "post"):   # not kicked off yet
+            continue
+        try:
+            s1, s2 = int(home.get("score")), int(away.get("score"))
+        except (TypeError, ValueError):
+            continue
+        p1 = int(home["shootoutScore"]) if home.get("shootoutScore") not in (None, "") else None
+        p2 = int(away["shootoutScore"]) if away.get("shootoutScore") not in (None, "") else None
+        rec = {
+            "id1": id1, "id2": id2, "s1": s1, "s2": s2, "p1": p1, "p2": p2,
+            "finished": st.get("completed") is True or st.get("state") == "post",
+            "date": (e.get("date") or "")[:10],
+        }
+        idx.setdefault("|".join(sorted([id1, id2])), []).append(rec)
+    return idx
+
+
+def overlay_espn_scores(schedule, idx):
+    """Overlay ESPN scores onto the openfootball-built schedule. Only scores and the
+    finished flag are touched; team resolution and bracket wiring stay openfootball's."""
+    for m in schedule:
+        if not (m["t1"] and m["t2"]):
+            continue
+        recs = idx.get("|".join(sorted([m["t1"], m["t2"]])))
+        if not recs:
+            continue
+        md = _date_only(m.get("date") or "")
+
+        def closeness(r):
+            rd = _date_only(r["date"])
+            return abs((rd - md).days) if (md and rd) else 0
+
+        e = min(recs, key=closeness)
+        # ESPN's home/away may be the reverse of our t1/t2 - align to our orientation.
+        if e["id1"] == m["t1"]:
+            m["s1"], m["s2"], m["p1"], m["p2"] = e["s1"], e["s2"], e["p1"], e["p2"]
+        else:
+            m["s1"], m["s2"], m["p1"], m["p2"] = e["s2"], e["s1"], e["p2"], e["p1"]
+        if e["finished"]:
+            m["status"] = "finished"
 
 
 def build(data, of):
@@ -222,6 +320,15 @@ def main():
 
     of = fetch_openfootball(local)
     data["schedule"] = build(data, of)
+
+    # Overlay near-live scores from ESPN. Best effort: if it fails, openfootball's
+    # structure (and whatever scores it had) still stands.
+    try:
+        name_to_id = {t["name"]: t["id"] for t in data["teams"]}
+        overlay_espn_scores(data["schedule"], espn_score_index(fetch_espn(), name_to_id))
+    except Exception as e:
+        print(f"ESPN overlay skipped ({e})", file=sys.stderr)
+
     derive_status(data)
 
     print(summarise(data))
