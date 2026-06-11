@@ -6,7 +6,7 @@
     "playerWord": "Player",
     "playerWordPlural": "Players",
     "hideSettingsTab": false,
-    "lastUpdated": "2026-06-11T04:02:19.849Z"
+    "lastUpdated": "2026-06-11T04:02:33.633Z"
   },
   "teams": [
     {
@@ -481,7 +481,8 @@
         "sen",
         "esp"
       ]
-    }
+    },
+    "locked": true
   },
   "champion": null,
   "schedule": [
