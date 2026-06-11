@@ -6,7 +6,7 @@
     "playerWord": "Player",
     "playerWordPlural": "Players",
     "hideSettingsTab": false,
-    "lastUpdated": "2026-06-11T03:57:39.651Z"
+    "lastUpdated": "2026-06-11T04:02:19.849Z"
   },
   "teams": [
     {
@@ -405,7 +405,7 @@
     "Kyle"
   ],
   "draw": {
-    "completed": false,
+    "completed": true,
     "order": [
       "Jody",
       "Brandon",
@@ -416,7 +416,72 @@
       "Bryan",
       "BS"
     ],
-    "allocations": {}
+    "allocations": {
+      "Jody": [
+        "cpv",
+        "tun",
+        "cze",
+        "irn",
+        "usa",
+        "ned"
+      ],
+      "Brandon": [
+        "hai",
+        "qat",
+        "nor",
+        "ecu",
+        "bel",
+        "bra"
+      ],
+      "Jacqui": [
+        "gha",
+        "sco",
+        "tur",
+        "aus",
+        "uru",
+        "fra"
+      ],
+      "Kyle": [
+        "cod",
+        "ksa",
+        "par",
+        "aut",
+        "mex",
+        "arg"
+      ],
+      "Andy": [
+        "bih",
+        "rsa",
+        "alg",
+        "can",
+        "cro",
+        "mar"
+      ],
+      "Sammi": [
+        "cur",
+        "uzb",
+        "pan",
+        "kor",
+        "col",
+        "por"
+      ],
+      "Bryan": [
+        "jor",
+        "civ",
+        "swe",
+        "sui",
+        "ger",
+        "eng"
+      ],
+      "BS": [
+        "nzl",
+        "irq",
+        "egy",
+        "jpn",
+        "sen",
+        "esp"
+      ]
+    }
   },
   "champion": null,
   "schedule": [
