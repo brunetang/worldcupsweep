@@ -7,7 +7,7 @@
     "playerWordPlural": "Players",
     "hideSettingsTab": false,
     "lastUpdated": "2026-06-11T04:02:33.633Z",
-    "lastResultSync": "2026-06-12T12:03:28.320903+00:00"
+    "lastResultSync": "2026-06-12T19:33:31.946594+00:00"
   },
   "teams": [
     {
@@ -593,8 +593,8 @@
       "t2": "bih",
       "ref1": null,
       "ref2": null,
-      "s1": null,
-      "s2": null,
+      "s1": 0,
+      "s2": 1,
       "p1": null,
       "p2": null,
       "status": "scheduled"
