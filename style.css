@@ -752,3 +752,32 @@ label.fld { display:block; font-size:12px; font-weight:800; letter-spacing:0.1em
   nav.tabs button { padding:11px 16px; }
   .btn { padding:14px 22px; }
 }
+
+
+/* Match Centre timezone picker (ported from world-cup-sweep) */
+.mc-controls { display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.mc-tzpick { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; font-weight: 700; }
+.mc-tz {
+  background: var(--pitch-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 7px 30px 7px 12px;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='%23668296'%3E%3Cpath d='M6 8L2 4h8z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 11px center;
+}
+.mc-tz:focus { outline: none; border-color: var(--cyan); }
+
+/* Trophy in header (ported from world-cup-sweep) */
+.title-row { display: flex; align-items: center; justify-content: center; gap: clamp(12px, 3vw, 28px); }
+.trophy, .trophy-img {
+  height: clamp(64px, 13vw, 132px); width: auto; flex: none;
+  filter: drop-shadow(0 8px 22px rgba(255,210,39,0.28));
+}
+.trophy-img { object-fit: contain; }

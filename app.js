@@ -708,7 +708,7 @@ function fmtKick(m, withTime) {
   if (iso) {
     const dt = new Date(iso);
     if (!isNaN(dt)) {
-      const opts = { timeZone: 'Australia/Sydney', weekday: 'short', day: 'numeric', month: 'short' };
+      const opts = { timeZone: displayZone(), weekday: 'short', day: 'numeric', month: 'short' };
       if (withTime) Object.assign(opts, { hour: 'numeric', minute: '2-digit', hour12: true });
       return dt.toLocaleString('en-AU', opts).replace(/,/g, '');
     }
@@ -862,12 +862,25 @@ function koSideHTML(m, s, w, champ) {
 // ============================================================
 let mcDate = null;   // selected day key 'YYYY-MM-DD' (Sydney)
 
-const SYD = 'Australia/Sydney';
+// Per-viewer display timezone. 'local' resolves to the viewer's own device zone.
+const TZ_KEY = 'wcs_tz';
+const TZS = [
+  { id: 'local',            label: 'My device' },
+  { id: 'Australia/Sydney', label: 'Sydney' },
+  { id: 'Europe/London',    label: 'UK / London' },
+  { id: 'America/New_York', label: 'US East / New York' },
+];
+let tzId = 'local';
+try { const s = localStorage.getItem(TZ_KEY); if (s && TZS.some(z => z.id === s)) tzId = s; } catch {}
+const DEVICE_TZ = (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Australia/Sydney'; } catch { return 'Australia/Sydney'; } })();
+function displayZone()      { return tzId === 'local' ? DEVICE_TZ : tzId; }
+function displayZoneLabel() { return (TZS.find(z => z.id === tzId) || TZS[0]).label; }
+function setDisplayZone(id) { if (TZS.some(z => z.id === id)) { tzId = id; try { localStorage.setItem(TZ_KEY, id); } catch {} } }
 function sydKey(iso) {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: SYD, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(iso));
+  return new Intl.DateTimeFormat('en-CA', { timeZone: displayZone(), year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(iso));
 }
 function sydTime(iso) {
-  return new Date(iso).toLocaleString('en-AU', { timeZone: SYD, hour: 'numeric', minute: '2-digit', hour12: true });
+  return new Date(iso).toLocaleString('en-AU', { timeZone: displayZone(), hour: 'numeric', minute: '2-digit', hour12: true });
 }
 function todayKey() { return sydKey(new Date().toISOString()); }
 function addDays(key, n) {
@@ -949,6 +962,9 @@ function mcRowHTML(m) {
 function renderMatchCentre() {
   const wrap = $('#mcList'); if (!wrap) return;
   if (!mcDate) mcInit();
+  const tzSel = $('#mcTz'); if (tzSel) tzSel.value = tzId;
+  const tzNote = $('#mcTzNote');
+  if (tzNote) tzNote.textContent = `All times in ${displayZoneLabel()}.`;
   const keys = dayKeys();
   $('#mcLabel').textContent = dayLabel(mcDate);
   $('#mcDate').textContent = prettyDay(mcDate);
@@ -1233,6 +1249,12 @@ async function init() {
   $('#mcPrev').addEventListener('click', () => mcStep(-1));
   $('#mcNext').addEventListener('click', () => mcStep(1));
   $('#mcToday').addEventListener('click', () => { mcDate = todayKey(); renderMatchCentre(); });
+  const tzSel = $('#mcTz');
+  if (tzSel) tzSel.addEventListener('change', e => {
+    setDisplayZone(e.target.value);
+    mcDate = null; mcInit();   // day boundaries shift with the zone, so re-pick the day
+    renderAll();               // also refreshes Groups/Knockout kick-off times
+  });
 
   // settings
   $('#cfgSave').addEventListener('click', () => { readCfgInputs(); saveCfg(); renderAll(); toast('Config saved'); $('#cfgStatus').textContent = 'Config saved to this browser.'; });
