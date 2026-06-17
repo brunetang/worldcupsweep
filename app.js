@@ -958,15 +958,36 @@ function updateTradeBtn() {
     note = `${esc(oa)} gives ${ta.flag} ${esc(ta.name)} → gets ${tb.flag} ${esc(tb.name)} from ${esc(ob)}.`;
   }
   btn.disabled = !ok;
-  msg.innerHTML = note;
+  if (!tradeArmed) msg.innerHTML = note;   // don't clobber an active "tap to confirm"
 }
+
+// Two-tap confirm instead of window.confirm(): in-app browser webviews (links
+// opened from WhatsApp/Instagram/Messenger) silently block confirm(), so the
+// first tap of Swap appeared to do nothing. First tap arms, second tap commits.
+let tradeArmed = false, tradeArmTimer = null;
+function disarmTrade() {
+  tradeArmed = false;
+  if (tradeArmTimer) { clearTimeout(tradeArmTimer); tradeArmTimer = null; }
+  const btn = $('#tradeBtn');
+  if (btn) { btn.classList.remove('armed'); btn.textContent = 'Swap'; }
+}
+function onTradeSelectChange() { disarmTrade(); updateTradeBtn(); }
 
 async function onTradeSwap() {
   const a = $('#tradeA').value, b = $('#tradeB').value;
   const oa = ownerOf(a), ob = ownerOf(b);
   if (!a || !b || !oa || !ob || oa === ob) return;
   const ta = teamById(a), tb = teamById(b);
-  if (!confirm(`Swap ${ta.flag} ${ta.name} (${oa}) ↔ ${tb.flag} ${tb.name} (${ob})?`)) return;
+  const btn = $('#tradeBtn');
+  if (!tradeArmed) {                        // first tap: arm and ask for a second tap
+    tradeArmed = true;
+    btn.classList.add('armed');
+    btn.textContent = 'Confirm swap';
+    $('#tradeMsg').innerHTML = `Tap again to confirm: ${ta.flag} ${esc(ta.name)} ↔ ${tb.flag} ${esc(tb.name)}.`;
+    tradeArmTimer = setTimeout(disarmTrade, 4000);
+    return;
+  }
+  disarmTrade();                            // second tap: do it
   if (!swapTeams(a, b)) { toast('Swap failed', true); return; }
   $('#tradeA').value = ''; $('#tradeB').value = '';
   renderAll();
@@ -1539,8 +1560,8 @@ async function init() {
   });
   $('#stageSkip').addEventListener('click', () => { skipDraw = true; });
 
-  $('#tradeA').addEventListener('change', updateTradeBtn);
-  $('#tradeB').addEventListener('change', updateTradeBtn);
+  $('#tradeA').addEventListener('change', onTradeSelectChange);
+  $('#tradeB').addEventListener('change', onTradeSelectChange);
   $('#tradeBtn').addEventListener('click', onTradeSwap);
 
   // match centre day navigation

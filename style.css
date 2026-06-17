@@ -803,6 +803,7 @@ label.fld { display:block; font-size:12px; font-weight:800; letter-spacing:0.1em
 }
 .trade-sel:focus { outline: none; border-color: var(--lime); }
 .trade-swap { color: var(--lime); font-size: 22px; font-weight: 700; flex: none; }
+#tradeBtn.armed { background: var(--magenta); color: #fff; }
 .trade-msg { margin-top: 10px; min-height: 1.2em; }
 @media (max-width: 560px) {
   .trade-sel { flex-basis: 100%; }
