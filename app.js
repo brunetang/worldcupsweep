@@ -900,6 +900,81 @@ async function onTeamAction(e) {
 }
 
 // ============================================================
+//  Trade teams (admin) — swap one team between two owners
+// ============================================================
+// Every team that belongs to a real owner. Excludes the Dregs bucket (it's
+// explicitly out of the sweep), but includes the pot (House) — trading
+// to/from the pot is a legit admin move.
+function ownedTeamOptions() {
+  return participants().filter(b => b !== DREGS).flatMap(owner =>
+    (DATA.draw.allocations[owner] || []).map(id => ({ id, owner, team: teamById(id) }))
+  ).filter(o => o.team);
+}
+
+// Swap idA (owned by A) with idB (owned by B), in place so slot order is kept.
+function swapTeams(idA, idB) {
+  const alloc = DATA.draw.allocations;
+  const oa = ownerOf(idA), ob = ownerOf(idB);
+  if (!oa || !ob || oa === ob) return false;
+  const ia = alloc[oa].indexOf(idA), ib = alloc[ob].indexOf(idB);
+  if (ia < 0 || ib < 0) return false;
+  alloc[oa][ia] = idB;
+  alloc[ob][ib] = idA;
+  return true;
+}
+
+function renderTradePanel() {
+  const panel = $('#tradePanel'); if (!panel) return;
+  const ready = DATA.draw.completed && (DATA.draw.order || []).length;
+  // admin-only class already hides it from spectators; also hide before the draw.
+  panel.style.display = ready ? '' : 'none';
+  if (!ready) return;
+  const opts = ownedTeamOptions();
+  const owners = [...new Set(opts.map(o => o.owner))];
+  const optionsHTML = owners.map(owner => {
+    const items = opts.filter(o => o.owner === owner)
+      .map(o => `<option value="${o.id}">${o.team.flag} ${esc(o.team.name)}</option>`).join('');
+    return `<optgroup label="${esc(owner)}">${items}</optgroup>`;
+  }).join('');
+  const selA = $('#tradeA'), selB = $('#tradeB');
+  const prevA = selA.value, prevB = selB.value;
+  selA.innerHTML = `<option value="">Team to give…</option>` + optionsHTML;
+  selB.innerHTML = `<option value="">Team to get…</option>` + optionsHTML;
+  if (opts.some(o => o.id === prevA)) selA.value = prevA;
+  if (opts.some(o => o.id === prevB)) selB.value = prevB;
+  updateTradeBtn();
+}
+
+function updateTradeBtn() {
+  const a = $('#tradeA').value, b = $('#tradeB').value;
+  const oa = a ? ownerOf(a) : null, ob = b ? ownerOf(b) : null;
+  const btn = $('#tradeBtn'), msg = $('#tradeMsg');
+  let ok = false, note;
+  if (!a || !b) note = 'Pick a team from each side.';
+  else if (oa === ob) note = 'Both teams belong to the same owner — pick from two different owners.';
+  else {
+    ok = true;
+    const ta = teamById(a), tb = teamById(b);
+    note = `${esc(oa)} gives ${ta.flag} ${esc(ta.name)} → gets ${tb.flag} ${esc(tb.name)} from ${esc(ob)}.`;
+  }
+  btn.disabled = !ok;
+  msg.innerHTML = note;
+}
+
+async function onTradeSwap() {
+  const a = $('#tradeA').value, b = $('#tradeB').value;
+  const oa = ownerOf(a), ob = ownerOf(b);
+  if (!a || !b || !oa || !ob || oa === ob) return;
+  const ta = teamById(a), tb = teamById(b);
+  if (!confirm(`Swap ${ta.flag} ${ta.name} (${oa}) ↔ ${tb.flag} ${tb.name} (${ob})?`)) return;
+  if (!swapTeams(a, b)) { toast('Swap failed', true); return; }
+  $('#tradeA').value = ''; $('#tradeB').value = '';
+  renderAll();
+  await pushData(true);
+  toast(canEdit() ? `Traded ✓ — ${ta.name} ↔ ${tb.name}` : 'Traded (local only)');
+}
+
+// ============================================================
 //  Schedule · Groups · Knockout
 // ============================================================
 const schedule = () => Array.isArray(DATA.schedule) ? DATA.schedule : [];
@@ -1302,6 +1377,7 @@ function renderAll() {
   renderKnockout();
   renderStandings();
   renderTeamsAdmin();
+  renderTradePanel();
   renderSyncStatus();
   updateSettingsTab();
 }
@@ -1462,6 +1538,10 @@ async function init() {
     renderAll(); await pushData(true); toast('Draw unlocked 🔓');
   });
   $('#stageSkip').addEventListener('click', () => { skipDraw = true; });
+
+  $('#tradeA').addEventListener('change', updateTradeBtn);
+  $('#tradeB').addEventListener('change', updateTradeBtn);
+  $('#tradeBtn').addEventListener('click', onTradeSwap);
 
   // match centre day navigation
   $('#mcPrev').addEventListener('click', () => mcStep(-1));

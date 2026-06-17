@@ -781,3 +781,31 @@ label.fld { display:block; font-size:12px; font-weight:800; letter-spacing:0.1em
   filter: drop-shadow(0 8px 22px rgba(255,210,39,0.28));
 }
 .trophy-img { object-fit: contain; }
+
+/* Trade teams panel */
+.trade-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
+.trade-sel {
+  flex: 1 1 200px;
+  min-width: 0;
+  background: var(--pitch-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 15px;
+  font-weight: 700;
+  padding: 12px 34px 12px 14px;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='%23668296'%3E%3Cpath d='M6 8L2 4h8z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 13px center;
+}
+.trade-sel:focus { outline: none; border-color: var(--lime); }
+.trade-swap { color: var(--lime); font-size: 22px; font-weight: 700; flex: none; }
+.trade-msg { margin-top: 10px; min-height: 1.2em; }
+@media (max-width: 560px) {
+  .trade-sel { flex-basis: 100%; }
+  .trade-swap { display: none; }
+  .trade-row .btn { width: 100%; }
+}

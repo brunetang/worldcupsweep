@@ -211,6 +211,17 @@
 
     <!-- ============ TEAMS ============ -->
     <section class="view" id="view-teams">
+      <div class="panel admin-only" id="tradePanel">
+        <h2>Trade Teams</h2>
+        <p class="hint">Swap one team between two owners. Pick a team from each side — they must belong to different owners. The swap saves to GitHub for everyone.</p>
+        <div class="trade-row">
+          <select id="tradeA" class="trade-sel"><option value="">Team to give…</option></select>
+          <span class="trade-swap">⇄</span>
+          <select id="tradeB" class="trade-sel"><option value="">Team to get…</option></select>
+          <button class="btn btn-primary" id="tradeBtn" disabled>Swap</button>
+        </div>
+        <p class="hint trade-msg" id="tradeMsg">Pick a team from each side.</p>
+      </div>
       <div class="panel">
         <h2>Tournament Tracker</h2>
         <p class="hint" id="teamsHint">Tap ✕ to knock a team out, ↺ to revive it, 👑 to crown the champion. Changes save to GitHub.</p>
