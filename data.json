@@ -6,8 +6,8 @@
     "playerWord": "Player",
     "playerWordPlural": "Players",
     "hideSettingsTab": false,
-    "lastUpdated": "2026-06-11T04:02:33.633Z",
-    "lastResultSync": "2026-06-12T19:33:31.946594+00:00"
+    "lastUpdated": "2026-06-17T10:44:09.222Z",
+    "lastResultSync": "{\"s\":[[1,\"mex\",\"rsa\",2,0,null,null,\"finished\"],[2,\"kor\",\"cze\",2,1,null,null,\"finished\"],[3,\"cze\",\"rsa\",null,null,null,null,\"scheduled\"],[4,\"mex\",\"kor\",null,null,null,null,\"scheduled\"],[5,\"cze\",\"mex\",null,null,null,null,\"scheduled\"],[6,\"rsa\",\"kor\",null,null,null,null,\"scheduled\"],[7,\"can\",\"bih\",1,1,null,null,\"finished\"],[8,\"qat\",\"sui\",1,1,null,null,\"finished\"],[9,\"sui\",\"bih\",null,null,null,null,\"scheduled\"],[10,\"can\",\"qat\",null,null,null,null,\"scheduled\"],[11,\"sui\",\"can\",null,null,null,null,\"scheduled\"],[12,\"bih\",\"qat\",null,null,null,null,\"scheduled\"],[13,\"bra\",\"mar\",1,1,null,null,\"finished\"],[14,\"hai\",\"sco\",0,1,null,null,\"finished\"],[15,\"sco\",\"mar\",null,null,null,null,\"scheduled\"],[16,\"bra\",\"hai\",null,null,null,null,\"scheduled\"],[17,\"sco\",\"bra\",null,null,null,null,\"scheduled\"],[18,\"mar\",\"hai\",null,null,null,null,\"scheduled\"],[19,\"usa\",\"par\",4,1,null,null,\"finished\"],[20,\"aus\",\"tur\",2,0,null,null,\"finished\"],[21,\"usa\",\"aus\",null,null,null,null,\"scheduled\"],[22,\"tur\",\"par\",null,null,null,null,\"scheduled\"],[23,\"tur\",\"usa\",null,null,null,null,\"scheduled\"],[24,\"par\",\"aus\",null,null,null,null,\"scheduled\"],[25,\"ger\",\"cur\",7,1,null,null,\"finished\"],[26,\"civ\",\"ecu\",1,0,null,null,\"finished\"],[27,\"ger\",\"civ\",null,null,null,null,\"scheduled\"],[28,\"ecu\",\"cur\",null,null,null,null,\"scheduled\"],[29,\"cur\",\"civ\",null,null,null,null,\"scheduled\"],[30,\"ecu\",\"ger\",null,null,null,null,\"scheduled\"],[31,\"ned\",\"jpn\",2,2,null,null,\"finished\"],[32,\"swe\",\"tun\",5,1,null,null,\"finished\"],[33,\"ned\",\"swe\",null,null,null,null,\"scheduled\"],[34,\"tun\",\"jpn\",null,null,null,null,\"scheduled\"],[35,\"jpn\",\"swe\",null,null,null,null,\"scheduled\"],[36,\"tun\",\"ned\",null,null,null,null,\"scheduled\"],[37,\"bel\",\"egy\",1,1,null,null,\"finished\"],[38,\"irn\",\"nzl\",2,2,null,null,\"finished\"],[39,\"bel\",\"irn\",null,null,null,null,\"scheduled\"],[40,\"nzl\",\"egy\",null,null,null,null,\"scheduled\"],[41,\"egy\",\"irn\",null,null,null,null,\"scheduled\"],[42,\"nzl\",\"bel\",null,null,null,null,\"scheduled\"],[43,\"esp\",\"cpv\",0,0,null,null,\"finished\"],[44,\"ksa\",\"uru\",1,1,null,null,\"finished\"],[45,\"esp\",\"ksa\",null,null,null,null,\"scheduled\"],[46,\"uru\",\"cpv\",null,null,null,null,\"scheduled\"],[47,\"cpv\",\"ksa\",null,null,null,null,\"scheduled\"],[48,\"uru\",\"esp\",null,null,null,null,\"scheduled\"],[49,\"fra\",\"sen\",3,1,null,null,\"finished\"],[50,\"irq\",\"nor\",1,4,null,null,\"finished\"],[51,\"fra\",\"irq\",null,null,null,null,\"scheduled\"],[52,\"nor\",\"sen\",null,null,null,null,\"scheduled\"],[53,\"nor\",\"fra\",null,null,null,null,\"scheduled\"],[54,\"sen\",\"irq\",null,null,null,null,\"scheduled\"],[55,\"arg\",\"alg\",3,0,null,null,\"finished\"],[56,\"aut\",\"jor\",3,1,null,null,\"finished\"],[57,\"arg\",\"aut\",null,null,null,null,\"scheduled\"],[58,\"jor\",\"alg\",null,null,null,null,\"scheduled\"],[59,\"alg\",\"aut\",null,null,null,null,\"scheduled\"],[60,\"jor\",\"arg\",null,null,null,null,\"scheduled\"],[61,\"por\",\"cod\",null,null,null,null,\"scheduled\"],[62,\"uzb\",\"col\",null,null,null,null,\"scheduled\"],[63,\"por\",\"uzb\",null,null,null,null,\"scheduled\"],[64,\"col\",\"cod\",null,null,null,null,\"scheduled\"],[65,\"col\",\"por\",null,null,null,null,\"scheduled\"],[66,\"cod\",\"uzb\",null,null,null,null,\"scheduled\"],[67,\"eng\",\"cro\",null,null,null,null,\"scheduled\"],[68,\"gha\",\"pan\",null,null,null,null,\"scheduled\"],[69,\"eng\",\"gha\",null,null,null,null,\"scheduled\"],[70,\"pan\",\"cro\",null,null,null,null,\"scheduled\"],[71,\"pan\",\"eng\",null,null,null,null,\"scheduled\"],[72,\"cro\",\"gha\",null,null,null,null,\"scheduled\"],[73,null,null,null,null,null,null,\"scheduled\"],[74,null,null,null,null,null,null,\"scheduled\"],[75,null,null,null,null,null,null,\"scheduled\"],[76,null,null,null,null,null,null,\"scheduled\"],[77,null,null,null,null,null,null,\"scheduled\"],[78,null,null,null,null,null,null,\"scheduled\"],[79,null,null,null,null,null,null,\"scheduled\"],[80,null,null,null,null,null,null,\"scheduled\"],[81,null,null,null,null,null,null,\"scheduled\"],[82,null,null,null,null,null,null,\"scheduled\"],[83,null,null,null,null,null,null,\"scheduled\"],[84,null,null,null,null,null,null,\"scheduled\"],[85,null,null,null,null,null,null,\"scheduled\"],[86,null,null,null,null,null,null,\"scheduled\"],[87,null,null,null,null,null,null,\"scheduled\"],[88,null,null,null,null,null,null,\"scheduled\"],[89,null,null,null,null,null,null,\"scheduled\"],[90,null,null,null,null,null,null,\"scheduled\"],[91,null,null,null,null,null,null,\"scheduled\"],[92,null,null,null,null,null,null,\"scheduled\"],[93,null,null,null,null,null,null,\"scheduled\"],[94,null,null,null,null,null,null,\"scheduled\"],[95,null,null,null,null,null,null,\"scheduled\"],[96,null,null,null,null,null,null,\"scheduled\"],[97,null,null,null,null,null,null,\"scheduled\"],[98,null,null,null,null,null,null,\"scheduled\"],[99,null,null,null,null,null,null,\"scheduled\"],[100,null,null,null,null,null,null,\"scheduled\"],[101,null,null,null,null,null,null,\"scheduled\"],[102,null,null,null,null,null,null,\"scheduled\"],[103,null,null,null,null,null,null,\"scheduled\"],[104,null,null,null,null,null,null,\"scheduled\"]],\"t\":[[\"mex\",\"alive\"],[\"rsa\",\"alive\"],[\"kor\",\"alive\"],[\"cze\",\"alive\"],[\"can\",\"alive\"],[\"bih\",\"alive\"],[\"qat\",\"alive\"],[\"sui\",\"alive\"],[\"bra\",\"alive\"],[\"mar\",\"alive\"],[\"hai\",\"alive\"],[\"sco\",\"alive\"],[\"usa\",\"alive\"],[\"par\",\"alive\"],[\"aus\",\"alive\"],[\"tur\",\"alive\"],[\"ger\",\"alive\"],[\"cur\",\"alive\"],[\"civ\",\"alive\"],[\"ecu\",\"alive\"],[\"ned\",\"alive\"],[\"jpn\",\"alive\"],[\"swe\",\"alive\"],[\"tun\",\"alive\"],[\"bel\",\"alive\"],[\"egy\",\"alive\"],[\"irn\",\"alive\"],[\"nzl\",\"alive\"],[\"esp\",\"alive\"],[\"cpv\",\"alive\"],[\"ksa\",\"alive\"],[\"uru\",\"alive\"],[\"fra\",\"alive\"],[\"sen\",\"alive\"],[\"irq\",\"alive\"],[\"nor\",\"alive\"],[\"arg\",\"alive\"],[\"alg\",\"alive\"],[\"aut\",\"alive\"],[\"jor\",\"alive\"],[\"por\",\"alive\"],[\"cod\",\"alive\"],[\"uzb\",\"alive\"],[\"col\",\"alive\"],[\"eng\",\"alive\"],[\"cro\",\"alive\"],[\"gha\",\"alive\"],[\"pan\",\"alive\"]],\"c\":null}"
   },
   "teams": [
     {
@@ -448,7 +448,7 @@
         "par",
         "aut",
         "mex",
-        "arg"
+        "esp"
       ],
       "Andy": [
         "bih",
@@ -480,7 +480,7 @@
         "egy",
         "jpn",
         "sen",
-        "esp"
+        "arg"
       ]
     },
     "locked": true
@@ -593,11 +593,11 @@
       "t2": "bih",
       "ref1": null,
       "ref2": null,
-      "s1": 0,
+      "s1": 1,
       "s2": 1,
       "p1": null,
       "p2": null,
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "num": 8,
@@ -609,11 +609,11 @@
       "t2": "sui",
       "ref1": null,
       "ref2": null,
-      "s1": null,
-      "s2": null,
+      "s1": 1,
+      "s2": 1,
       "p1": null,
       "p2": null,
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "num": 9,
@@ -689,11 +689,11 @@
       "t2": "mar",
       "ref1": null,
       "ref2": null,
-      "s1": null,
-      "s2": null,
+      "s1": 1,
+      "s2": 1,
       "p1": null,
       "p2": null,
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "num": 14,
@@ -705,11 +705,11 @@
       "t2": "sco",
       "ref1": null,
       "ref2": null,
-      "s1": null,
-      "s2": null,
+      "s1": 0,
+      "s2": 1,
       "p1": null,
       "p2": null,
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "num": 15,
@@ -785,11 +785,11 @@
       "t2": "par",
       "ref1": null,
       "ref2": null,
-      "s1": null,
-      "s2": null,
+      "s1": 4,
+      "s2": 1,
       "p1": null,
       "p2": null,
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "num": 20,
@@ -801,11 +801,11 @@
       "t2": "tur",
       "ref1": null,
       "ref2": null,
-      "s1": null,
-      "s2": null,
+      "s1": 2,
+      "s2": 0,
       "p1": null,
       "p2": null,
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "num": 21,
@@ -881,11 +881,11 @@
       "t2": "cur",
       "ref1": null,
       "ref2": null,
-      "s1": null,
-      "s2": null,
+      "s1": 7,
+      "s2": 1,
       "p1": null,
       "p2": null,
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "num": 26,
@@ -897,11 +897,11 @@
       "t2": "ecu",
       "ref1": null,
       "ref2": null,
-      "s1": null,
-      "s2": null,
+      "s1": 1,
+      "s2": 0,
       "p1": null,
       "p2": null,
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "num": 27,
@@ -977,11 +977,11 @@
       "t2": "jpn",
       "ref1": null,
       "ref2": null,
-      "s1": null,
-      "s2": null,
+      "s1": 2,
+      "s2": 2,
       "p1": null,
       "p2": null,
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "num": 32,
@@ -993,11 +993,11 @@
       "t2": "tun",
       "ref1": null,
       "ref2": null,
-      "s1": null,
-      "s2": null,
+      "s1": 5,
+      "s2": 1,
       "p1": null,
       "p2": null,
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "num": 33,
@@ -1073,11 +1073,11 @@
       "t2": "egy",
       "ref1": null,
       "ref2": null,
-      "s1": null,
-      "s2": null,
+      "s1": 1,
+      "s2": 1,
       "p1": null,
       "p2": null,
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "num": 38,
@@ -1089,11 +1089,11 @@
       "t2": "nzl",
       "ref1": null,
       "ref2": null,
-      "s1": null,
-      "s2": null,
+      "s1": 2,
+      "s2": 2,
       "p1": null,
       "p2": null,
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "num": 39,
@@ -1169,11 +1169,11 @@
       "t2": "cpv",
       "ref1": null,
       "ref2": null,
-      "s1": null,
-      "s2": null,
+      "s1": 0,
+      "s2": 0,
       "p1": null,
       "p2": null,
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "num": 44,
@@ -1185,11 +1185,11 @@
       "t2": "uru",
       "ref1": null,
       "ref2": null,
-      "s1": null,
-      "s2": null,
+      "s1": 1,
+      "s2": 1,
       "p1": null,
       "p2": null,
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "num": 45,
@@ -1265,11 +1265,11 @@
       "t2": "sen",
       "ref1": null,
       "ref2": null,
-      "s1": null,
-      "s2": null,
+      "s1": 3,
+      "s2": 1,
       "p1": null,
       "p2": null,
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "num": 50,
@@ -1281,11 +1281,11 @@
       "t2": "nor",
       "ref1": null,
       "ref2": null,
-      "s1": null,
-      "s2": null,
+      "s1": 1,
+      "s2": 4,
       "p1": null,
       "p2": null,
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "num": 51,
@@ -1361,11 +1361,11 @@
       "t2": "alg",
       "ref1": null,
       "ref2": null,
-      "s1": null,
-      "s2": null,
+      "s1": 3,
+      "s2": 0,
       "p1": null,
       "p2": null,
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "num": 56,
@@ -1377,11 +1377,11 @@
       "t2": "jor",
       "ref1": null,
       "ref2": null,
-      "s1": null,
-      "s2": null,
+      "s1": 3,
+      "s2": 1,
       "p1": null,
       "p2": null,
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "num": 57,
