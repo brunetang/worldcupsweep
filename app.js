@@ -175,121 +175,72 @@ async function pollData() {
 //  data, not a cache - nothing is written back. The draw is still saved to GitHub
 //  (admin token); only results are live.
 // ============================================================
-const OPENFOOTBALL_URL = 'https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json';
-// ESPN's public scoreboard: key-free, CORS-open (access-control-allow-origin: *),
-// and near-live (updates within a minute or so) where openfootball's community feed
-// can lag by hours or days. We take fixture STRUCTURE (knockout slot labels, bracket
-// wiring) from openfootball and overlay live SCORES from ESPN on top. limit=200 so the
-// whole tournament (104 matches) comes back in one request, not just the current day.
+// ESPN's public scoreboard: key-free, CORS-open (access-control-allow-origin: *)
+// and near-live. limit=200 so the whole tournament (104 matches) comes back in one
+// request. A group match's group letter is read from data.json (every team carries
+// its letter), so no second (standings) call is needed.
 const ESPN_URL = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=20260611-20260720&limit=200';
 const RESULTS_KEY = 'wcs_results:' + APP_NS;   // last-good cache (resilience only)
 
-// openfootball name -> our team name (only where they differ)
-const NAME_FIX = { 'Bosnia & Herzegovina': 'Bosnia and Herzegovina', 'USA': 'United States' };
 // ESPN displayName -> our team name (only where they differ)
 const ESPN_NAME_FIX = {
   'Czechia': 'Czech Republic', 'Türkiye': 'Turkey', 'Congo DR': 'DR Congo',
   'Bosnia-Herzegovina': 'Bosnia and Herzegovina', 'USA': 'United States',
 };
-// openfootball round label -> [our stage code, bracket numbering base]
-const STAGE = {
-  'Round of 32': ['R32', 73], 'Round of 16': ['R16', 89], 'Quarter-final': ['QF', 97],
-  'Semi-final': ['SF', 101], 'Match for third place': ['3P', 103], 'Final': ['F', 104],
+// ESPN season.slug -> our stage code
+const SLUG_STAGE = {
+  'group-stage': 'group', 'round-of-32': 'R32', 'round-of-16': 'R16',
+  'quarterfinals': 'QF', 'semifinals': 'SF', '3rd-place-match': '3P', 'final': 'F',
 };
+// ESPN names a knockout slot after its FEEDER round + ordinal, e.g. "Round of 32 3
+// Winner". Sorting events by id gives a self-consistent 1..104 numbering, so the Nth
+// match of a round has num (base+N); these offsets turn a slot label into our
+// W<num>/L<num> ref (winner/loser of that match) for the existing bracket wiring.
+const REF_BASE = { 'Round of 32': 72, 'Round of 16': 88, 'Quarterfinal': 96, 'Semifinal': 100 };
 
-// openfootball stores venue-local time + offset, e.g. "13:00 UTC-6". Return the
-// UTC instant as an ISO string (the frontend renders it in the viewer's zone).
-function kickoffUtc(date, timeStr) {
-  if (!date || !timeStr) return null;
-  const mt = /^\s*(\d{1,2}):(\d{2})\s*UTC([+-]\d{1,2})(?::(\d{2}))?/.exec(timeStr);
-  if (!mt) return null;
-  const hh = +mt[1], mm = +mt[2], oh = +mt[3], om = +(mt[4] || 0);
-  const y = +date.slice(0, 4), mo = +date.slice(5, 7), d = +date.slice(8, 10);
-  let offMin = Math.abs(oh) * 60 + om; if (oh < 0) offMin = -offMin;
-  const utcMs = Date.UTC(y, mo - 1, d, hh, mm) - offMin * 60000;
-  return new Date(utcMs).toISOString().replace(/\.\d{3}Z$/, 'Z');
-}
-
-// (s1, s2, p1, p2) from an openfootball match - extra time wins over full time.
-function ofScores(m) {
-  const sc = m.score || {};
-  const base = sc.et || sc.ft;
-  if (!base) return [null, null, null, null];
-  const pn = sc.p;
-  return [base[0], base[1], pn ? pn[0] : null, pn ? pn[1] : null];
-}
-
-// Index ESPN's scoreboard by team-pair so we can overlay live scores onto our
-// schedule. Keyed by the sorted pair of OUR team ids; each value is a list (a pair
-// could in theory meet twice, and ESPN's date is a UTC instant that can land a day
-// off openfootball's venue-local date, so we disambiguate by nearest date later).
-function espnScoreIndex(espn) {
+// Transform ESPN's scoreboard into our schedule[] (same shape downstream expects).
+// Events are numbered 1..104 by ascending id (canonical, self-consistent order). A
+// group match's group letter comes from data.json via either side's team. A knockout
+// side is either a resolved team or a slot label ("Round of 32 3 Winner") -> W/L ref.
+function buildSchedule(espn) {
   const nameToId = {}; DATA.teams.forEach(t => nameToId[t.name] = t.id);
-  const idOf = nm => nameToId[ESPN_NAME_FIX[nm] || nm] || null;
-  const idx = new Map();
-  (espn.events || []).forEach(e => {
-    const comp = (e.competitions || [])[0]; if (!comp) return;
-    const cs = comp.competitors || []; if (cs.length < 2) return;
-    const home = cs.find(c => c.homeAway === 'home') || cs[0];
-    const away = cs.find(c => c.homeAway === 'away') || cs[1];
-    const id1 = idOf(home.team && home.team.displayName);
-    const id2 = idOf(away.team && away.team.displayName);
-    if (!id1 || !id2) return;   // unresolved placeholder ("Group A Winner") -> skip
-    const st = (e.status && e.status.type) || {};
-    if (st.state !== 'in' && st.state !== 'post') return;   // not kicked off yet
-    const s1 = parseInt(home.score, 10), s2 = parseInt(away.score, 10);
-    if (!Number.isFinite(s1) || !Number.isFinite(s2)) return;
-    const p1 = home.shootoutScore != null ? +home.shootoutScore : null;
-    const p2 = away.shootoutScore != null ? +away.shootoutScore : null;
-    const rec = { id1, id2, s1, s2, p1, p2, finished: st.completed === true || st.state === 'post', date: (e.date || '').slice(0, 10) };
-    const key = [id1, id2].sort().join('|');
-    (idx.get(key) || idx.set(key, []).get(key)).push(rec);
-  });
-  return idx;
-}
-
-// Overlay ESPN scores onto the schedule built from openfootball. Only scores and the
-// finished flag are touched; team resolution and bracket wiring stay openfootball's job.
-function overlayEspnScores(idx) {
-  (DATA.schedule || []).forEach(m => {
-    if (!m.t1 || !m.t2) return;
-    const recs = idx.get([m.t1, m.t2].sort().join('|'));
-    if (!recs || !recs.length) return;
-    const md = m.date || '';
-    const e = recs.reduce((best, r) =>
-      Math.abs(Date.parse(r.date) - Date.parse(md)) < Math.abs(Date.parse(best.date) - Date.parse(md)) ? r : best);
-    // ESPN's home/away may be the reverse of our t1/t2 - align to our orientation.
-    if (e.id1 === m.t1) { m.s1 = e.s1; m.s2 = e.s2; m.p1 = e.p1; m.p2 = e.p2; }
-    else { m.s1 = e.s2; m.s2 = e.s1; m.p1 = e.p2; m.p2 = e.p1; }
-    if (e.finished) m.status = 'finished';
-  });
-}
-
-// Transform the openfootball feed into our schedule[] (same shape the Python emitted).
-function buildSchedule(of) {
-  const nameToId = {}; DATA.teams.forEach(t => nameToId[t.name] = t.id);
-  const resolve = label => { if (!label) return null; return nameToId[NAME_FIX[label] || label] || null; };
-  const out = [], counters = {}; let groupNo = 0;
-  (of.matches || []).forEach(m => {
-    const rnd = m.round || '', grp = String(m.group || '');
-    const [s1, s2, p1, p2] = ofScores(m);
-    const finished = s1 != null;
-    if (grp.indexOf('Group') === 0) {
-      groupNo++;
-      out.push({ num: groupNo, stage: 'group', group: grp.split(' ')[1], date: m.date,
-        kickoff: kickoffUtc(m.date, m.time), t1: resolve(m.team1), t2: resolve(m.team2),
-        ref1: null, ref2: null, s1, s2, p1: null, p2: null,
-        status: finished ? 'finished' : 'scheduled' });
-    } else if (STAGE[rnd]) {
-      const [code, base] = STAGE[rnd], n = counters[code] || 0; counters[code] = n + 1;
-      const t1 = resolve(m.team1), t2 = resolve(m.team2);
-      out.push({ num: base + n, stage: code, group: null, date: m.date,
-        kickoff: kickoffUtc(m.date, m.time), t1, t2,
-        ref1: t1 ? null : m.team1, ref2: t2 ? null : m.team2, s1, s2, p1, p2,
-        status: finished ? 'finished' : 'scheduled' });
+  const idOf = nm => nm ? (nameToId[ESPN_NAME_FIX[nm] || nm] || null) : null;
+  const refOf = label => {
+    const mt = /^(Round of 32|Round of 16|Quarterfinal|Semifinal) (\d+) (Winner|Loser)$/.exec(label || '');
+    if (!mt) return label || null;            // unknown / group-position slot -> keep raw
+    return (mt[3] === 'Winner' ? 'W' : 'L') + (REF_BASE[mt[1]] + (+mt[2]));
+  };
+  const events = (espn.events || [])
+    .filter(e => e.season && SLUG_STAGE[e.season.slug])
+    .sort((a, b) => (+a.id) - (+b.id));
+  return events.map((e, i) => {
+    const stage = SLUG_STAGE[e.season.slug];
+    const c = (e.competitions || [])[0] || {}, cs = c.competitors || [];
+    const home = cs.find(z => z.homeAway === 'home') || cs[0] || {};
+    const away = cs.find(z => z.homeAway === 'away') || cs[1] || {};
+    const n1 = home.team && home.team.displayName, n2 = away.team && away.team.displayName;
+    const t1 = idOf(n1), t2 = idOf(n2);
+    const stt = (e.status && e.status.type) || {};
+    const finished = stt.completed === true || stt.state === 'post';
+    const started = finished || stt.state === 'in';
+    let s1 = null, s2 = null, p1 = null, p2 = null;
+    if (started) {
+      const a = parseInt(home.score, 10), b = parseInt(away.score, 10);
+      if (Number.isFinite(a) && Number.isFinite(b)) { s1 = a; s2 = b; }
+      if (home.shootoutScore != null) p1 = +home.shootoutScore;
+      if (away.shootoutScore != null) p2 = +away.shootoutScore;
     }
+    const num = i + 1, date = (e.date || '').slice(0, 10), kickoff = e.date || null;
+    const status = finished ? 'finished' : 'scheduled';
+    if (stage === 'group') {
+      const g1 = t1 && teamById(t1), g2 = t2 && teamById(t2);
+      const group = (g1 && g1.group) || (g2 && g2.group) || null;
+      return { num, stage: 'group', group, date, kickoff, t1, t2,
+        ref1: null, ref2: null, s1, s2, p1: null, p2: null, status };
+    }
+    return { num, stage, group: null, date, kickoff, t1, t2,
+      ref1: t1 ? null : refOf(n1), ref2: t2 ? null : refOf(n2), s1, s2, p1, p2, status };
   });
-  return out;
 }
 
 // Set each team's status (alive/out) and the champion from the schedule.
@@ -346,21 +297,14 @@ function resultsFingerprint() {
 // overlaid from ESPN. Either source alone is enough to refresh; if both are
 // unreachable, fall back to the last-good cache. Returns true if state changed.
 async function refreshResults() {
-  let ofOk = false, espnOk = false;
+  let espnOk = false;
 
-  // 1. Fixture structure (knockout slot labels, bracket wiring) from openfootball.
-  try {
-    const r = await fetch(OPENFOOTBALL_URL + '?t=' + Date.now(), { cache: 'no-store' });
-    if (r.ok) { DATA.schedule = buildSchedule(await r.json()); ofOk = true; }
-  } catch (e) { console.warn('openfootball fetch failed', e); }
-
-  // 2. Live scores from ESPN, overlaid onto whatever schedule we now have.
   try {
     const r = await fetch(ESPN_URL + '&_=' + Date.now(), { cache: 'no-store' });
-    if (r.ok) { overlayEspnScores(espnScoreIndex(await r.json())); espnOk = true; }
+    if (r.ok) { DATA.schedule = buildSchedule(await r.json()); espnOk = true; }
   } catch (e) { console.warn('ESPN fetch failed', e); }
 
-  if (ofOk || espnOk) {
+  if (espnOk) {
     deriveStatus();
     const fp = resultsFingerprint();
     try {
@@ -373,7 +317,7 @@ async function refreshResults() {
     return changed;
   }
 
-  // openfootball unreachable - restore the last good results if we have them.
+  // ESPN unreachable - restore the last good results if we have them.
   try {
     const cached = JSON.parse(localStorage.getItem(RESULTS_KEY) || 'null');
     if (cached && cached.schedule) {
