@@ -303,10 +303,18 @@ function deriveStatus() {
   });
   const groupMatches = sched.filter(m => m.stage === 'group');
   const groupDone = groupMatches.length > 0 && groupMatches.every(m => m.status === 'finished');
-  if (groupDone) {
+  // Only cut group teams once openfootball has FULLY wired the R32 bracket (every
+  // fixture, both sides resolved to real teams). Its bracket wiring lags the group
+  // results by hours — third-placed slots ("3A/B/C/D/F") and even group-position
+  // slots ("1I") sit unresolved for a while. Cutting on a partially-wired bracket
+  // marks qualified-but-not-yet-wired teams as out. Better to keep everyone alive
+  // until the bracket is complete; knockout losers are still cut by the block above.
+  const r32 = sched.filter(m => m.stage === 'R32');
+  const r32Wired = r32.length > 0 && r32.every(m => m.t1 && m.t2);
+  if (groupDone && r32Wired) {
     const inKo = new Set();
-    sched.forEach(m => { if (m.stage === 'R32') ['t1', 't2'].forEach(k => { if (m[k]) inKo.add(m[k]); }); });
-    if (inKo.size) DATA.teams.forEach(t => { if (!inKo.has(t.id)) out.add(t.id); });
+    r32.forEach(m => ['t1', 't2'].forEach(k => { if (m[k]) inKo.add(m[k]); }));
+    DATA.teams.forEach(t => { if (!inKo.has(t.id)) out.add(t.id); });
   }
   DATA.teams.forEach(t => t.status = out.has(t.id) ? 'out' : 'alive');
   DATA.champion = champion;
