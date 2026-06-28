@@ -303,18 +303,31 @@ function deriveStatus() {
   });
   const groupMatches = sched.filter(m => m.stage === 'group');
   const groupDone = groupMatches.length > 0 && groupMatches.every(m => m.status === 'finished');
-  // Only cut group teams once openfootball has FULLY wired the R32 bracket (every
-  // fixture, both sides resolved to real teams). Its bracket wiring lags the group
-  // results by hours — third-placed slots ("3A/B/C/D/F") and even group-position
-  // slots ("1I") sit unresolved for a while. Cutting on a partially-wired bracket
-  // marks qualified-but-not-yet-wired teams as out. Better to keep everyone alive
-  // until the bracket is complete; knockout losers are still cut by the block above.
-  const r32 = sched.filter(m => m.stage === 'R32');
-  const r32Wired = r32.length > 0 && r32.every(m => m.t1 && m.t2);
-  if (groupDone && r32Wired) {
-    const inKo = new Set();
-    r32.forEach(m => ['t1', 't2'].forEach(k => { if (m[k]) inKo.add(m[k]); }));
-    DATA.teams.forEach(t => { if (!inKo.has(t.id)) out.add(t.id); });
+  if (groupDone) {
+    // Who advanced? Prefer openfootball's R32 wiring once every fixture has both
+    // sides resolved (authoritative). Until then its bracket lags the group results
+    // by hours (slots like "1I" or "3A/B/C/D/F" sit unresolved), so derive the
+    // qualifiers from the group tables: top 2 of each group plus the best
+    // third-placed teams (2026 format: 12 groups -> 24 + 8 = 32). Cutting on a
+    // partially-wired bracket is what wrongly marked qualified teams as out.
+    const r32 = sched.filter(m => m.stage === 'R32');
+    const q = new Set();
+    if (r32.length && r32.every(m => m.t1 && m.t2)) {
+      r32.forEach(m => ['t1', 't2'].forEach(k => q.add(m[k])));
+    } else {
+      const letters = [...new Set(DATA.teams.map(t => t.group))].filter(Boolean).sort();
+      const thirds = [];
+      letters.forEach(g => {
+        const rows = computeGroup(g);
+        if (rows[0]) q.add(rows[0].id);
+        if (rows[1]) q.add(rows[1].id);
+        if (rows[2]) thirds.push(rows[2]);
+      });
+      thirds.sort((x, y) => y.pts - x.pts || y.gd - x.gd || y.gf - x.gf ||
+        teamById(x.id).name.localeCompare(teamById(y.id).name));
+      thirds.slice(0, Math.max(0, 32 - 2 * letters.length)).forEach(r => q.add(r.id));
+    }
+    if (q.size) DATA.teams.forEach(t => { if (!q.has(t.id)) out.add(t.id); });
   }
   DATA.teams.forEach(t => t.status = out.has(t.id) ? 'out' : 'alive');
   DATA.champion = champion;
