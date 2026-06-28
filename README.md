@@ -6,7 +6,7 @@ A free, self-hosted sweepstake app for the 2026 FIFA World Cup. Run a "last team
 - **Animated live draw** — shuffles the draw order, then deals every team out slot-machine style.
 - **Last team standing** — whoever owns the eventual champion takes the pot.
 - **Group stage + knockout bracket** tabs that fill in as the tournament plays out, each team tagged with the player who drew it.
-- **Auto-updating results** — a GitHub Action pulls live scores and updates the app on its own.
+- **Live results** - the app reads live scores in-app from ESPN's public scoreboard and updates on its own.
 - **Shared live state** via a `data.json` file synced to GitHub (admin uses a personal access token; everyone else just views).
 - **Make it yours** — set your group name and what to call the players from the Settings tab. No code needed.
 
@@ -20,7 +20,7 @@ No build step. Vanilla HTML/CSS/JS.
 | `style.css` | Stadium-broadcast theme |
 | `app.js` | Draw, scoring, groups, bracket, GitHub sync |
 | `data.json` | The single source of truth (teams, players, draw, schedule, results) |
-| `scripts/update_results.py` | Pulls results from openfootball, fills the schedule, derives who's still alive |
+| `scripts/update_results.py` | Historical reference only (openfootball-based). No longer run or used; live results now come from ESPN in-app |
 | `.github/workflows/update-results.yml` | Runs the updater on a schedule + on demand |
 
 ## How it works
@@ -35,21 +35,23 @@ No build step. Vanilla HTML/CSS/JS.
 
 1. **Create your own repo from this one** (use it as a template, or fork it) and enable **GitHub Pages** (repo Settings → Pages → Branch: `main`).
 2. **Point the app at your repo.** Open `app.js` and set `DEFAULT_REPO.owner` to your GitHub username (and `repo` to your repo name if you renamed it). This is what lets your viewers load the live data automatically.
-3. **Enable Actions** on your repo (the Actions tab → enable) so results auto-update. No secrets needed — it uses GitHub's built-in token and a free public results feed.
+3. **Live results work out of the box.** The app reads scores in-app from ESPN's public scoreboard (no API key, no Action, no secrets needed).
 4. **Add your admin token.** On the deployed site → **Settings** → fill in repo owner / name, then create a **fine-grained personal access token** with **Contents: Read & write** on your repo (or a classic token with the `repo` scope). Paste it in and *Save config*. The token is stored only in your browser (`localStorage`) and is never committed.
 5. **Brand it.** Settings → **Group Branding**: set your group name, tagline, and the word for players (e.g. "player", "lad", "member"). Saved with the sweep so everyone sees the same wording.
 6. **Run the draw** and share the Pages URL. No token = read-only view of the latest committed data.
 
-## Auto-updating results
+## Live results
 
-A scheduled **GitHub Action** (`.github/workflows/update-results.yml`) runs every ~20 minutes during the tournament window (and on demand from the Actions tab). It runs `scripts/update_results.py`, which:
+The app reads live results in-app from **ESPN's public scoreboard** in a single fetch (no API key). From that one feed it:
 
-- pulls the public-domain schedule + results from [openfootball/worldcup.json](https://github.com/openfootball/worldcup.json) (no API key),
-- fills in scores, resolves knockout fixtures, recomputes group standings,
-- derives each team's alive/out status and the champion,
-- commits `data.json` if anything changed → Pages serves the update to everyone.
+- numbers events 1..104 by ascending event id (a self-consistent order),
+- reads each match's stage, group letter, teams, score and status,
+- resolves knockout fixtures and recomputes group standings,
+- derives each team's alive/out status and the champion.
 
-This is **semi-live**: latency depends on how quickly openfootball is updated after a match (minutes to ~an hour) plus the 20-minute cron. The auto-update is authoritative; if it ever lags, the admin can set results by hand in the **Teams** tab (the next auto-run will reconcile). Run `python3 scripts/update_results.py --dry-run` locally to preview.
+ESPN is the authoritative source; if it ever lags, the admin can set results by hand in the **Teams** tab.
+
+**openfootball was dropped on 2026-06-28.** The app previously took fixture/bracket structure from [openfootball/worldcup.json](https://github.com/openfootball/worldcup.json) and overlaid ESPN scores on top (two feeds). openfootball's knockout bracket wiring lagged the group results by hours, leaving Round-of-32 slots as placeholders (e.g. "1I" or "3A/B/C/D/F"), which made the qualification logic wrongly mark qualified teams as **OUT**. ESPN resolves the knockout teams immediately, so it is now the single source. Note: ESPN orders knockout matches differently from openfootball, so the bracket numbering is now ESPN's own.
 
 ## Notes
 
