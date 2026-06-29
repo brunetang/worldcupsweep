@@ -1088,10 +1088,15 @@ function bracketOrder() {
     kids(m).forEach(visit);
     if (order[m.stage]) order[m.stage].push(num);
   })((schedule().find(m => m.stage === 'F') || {}).num);
-  // fallback for any round the tree-walk missed
+  // The tree-walk follows W<num> refs, but ESPN drops the slot label once a tie
+  // finishes (the ref becomes a resolved team -> kids() can't reach the feeder).
+  // So a finished match falls out of the walk even though its winner shows in the
+  // next round. Append any stage matches the walk missed (in num order) so every
+  // tie stays visible; if the walk found none for a round, this also covers it.
   ['R32', 'R16', 'QF', 'SF', 'F'].forEach(st => {
-    if (!order[st].length)
-      order[st] = schedule().filter(m => m.stage === st).sort((a, b) => a.num - b.num).map(m => m.num);
+    const have = new Set(order[st]);
+    schedule().filter(m => m.stage === st).sort((a, b) => a.num - b.num)
+      .forEach(m => { if (!have.has(m.num)) order[st].push(m.num); });
   });
   return { order, by };
 }
