@@ -1079,23 +1079,40 @@ function knockoutWinnerId(m) {
   return a > b ? m.t1 : m.t2;
 }
 function bracketOrder() {
-  const by = {}; schedule().forEach(m => by[m.num] = m);
+  const sched = schedule();
+  const by = {}; sched.forEach(m => by[m.num] = m);
   const order = { R32: [], R16: [], QF: [], SF: [], F: [] };
-  const kids = m => [m.ref1, m.ref2].filter(r => r && /^W\d+/.test(r)).map(r => +r.slice(1));
+  // Each side of a knockout tie is fed by the previous round. ESPN gives a
+  // W<num> ref while that feeder is unplayed, then swaps in the resolved team
+  // (dropping the ref) once it finishes. Following only W-refs would lose the
+  // finished feeder, so when the ref is gone we recover it as the previous-round
+  // match whose winner is the team now sitting in this slot - keeping every tie
+  // in its correct bracket position rather than orphaning it.
+  const PREV = { R16: 'R32', QF: 'R16', SF: 'QF', F: 'SF' };
+  const kids = m => {
+    const out = [];
+    ['1', '2'].forEach(s => {
+      const ref = m['ref' + s];
+      if (ref && /^W\d+/.test(ref)) { out.push(+ref.slice(1)); return; }
+      const tid = m['t' + s], prev = PREV[m.stage];
+      if (tid && prev) {
+        const f = sched.find(x => x.stage === prev && knockoutWinnerId(x) === tid);
+        if (f) out.push(f.num);
+      }
+    });
+    return out;
+  };
   const seen = new Set();
   (function visit(num) {
     const m = by[num]; if (!m || seen.has(num)) return; seen.add(num);
     kids(m).forEach(visit);
     if (order[m.stage]) order[m.stage].push(num);
-  })((schedule().find(m => m.stage === 'F') || {}).num);
-  // The tree-walk follows W<num> refs, but ESPN drops the slot label once a tie
-  // finishes (the ref becomes a resolved team -> kids() can't reach the feeder).
-  // So a finished match falls out of the walk even though its winner shows in the
-  // next round. Append any stage matches the walk missed (in num order) so every
-  // tie stays visible; if the walk found none for a round, this also covers it.
+  })((sched.find(m => m.stage === 'F') || {}).num);
+  // Safety net: append any tie the walk still missed (e.g. before the bracket
+  // wires up, or a feeder whose winner can't be matched), in num order.
   ['R32', 'R16', 'QF', 'SF', 'F'].forEach(st => {
     const have = new Set(order[st]);
-    schedule().filter(m => m.stage === st).sort((a, b) => a.num - b.num)
+    sched.filter(m => m.stage === st).sort((a, b) => a.num - b.num)
       .forEach(m => { if (!have.has(m.num)) order[st].push(m.num); });
   });
   return { order, by };
