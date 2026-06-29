@@ -85,7 +85,7 @@ Live results are read in-app from ESPN's public scoreboard. `buildSchedule(espn)
 from the event data, and the teams/score/status from the competitors. Knockout slot labels
 like "Round of 32 3 Winner" are turned into the existing `W<num>`/`L<num>` bracket refs.
 The bracket numbering is therefore ESPN's own order (ESPN orders knockout matches
-differently from openfootball). There is no server-side updater and no commit step for live
+differently from openfootball). Bracket rendering (`bracketOrder()`): the Knockout tab stacks ties in true bracket order. ESPN drops a slot's "winner of match N" ref once its feeder finishes, so finished ties are kept in their correct slot by matching each resolved team back to the prior-round match it won (fixed 2026-06-29 — previously a tie vanished from its column the moment it was played). There is no server-side updater and no commit step for live
 results. Manual fallback: set results by hand on the **Teams** tab.
 
 **openfootball was dropped on 2026-06-28.** The engine previously took fixture/bracket
